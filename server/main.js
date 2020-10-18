@@ -39,6 +39,17 @@ api/users/:id/update - POST
     location: String // coordinates or just arbitrary? for MVP atleast?
 }
 
+api/users/:id/update/password/verify - POST
+{
+    password: String
+}
+
+api/games/start - POST
+
+api/games/all - GET
+
+TODO (me to Tim):
+
 */
 app.post('/users/register', async (req, res) => {
     const status = await createPlayer(req.body.name, req.body.email, req.body.password, "1", req.body.location, "./pic", []);
