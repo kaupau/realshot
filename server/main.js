@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const model = require('./models');
+const EloRank = require('./elo');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const express = require('express');
@@ -65,8 +66,43 @@ app.get('/api/users/online', async(req, res) => {
 
 
 
+/*
+{
+    winner: playerID
+}
+*/
+app.post('/api/games/:game_id/finish', (req, res) => {
+    model.Game.findOne({_id: req.params.game_id}).then(game => {
+        var elo = new EloRank(15);  // change to ENV variable? or CONFIG file variable? something idk.
+        
+        var rankingPlayer1 = getPlayerByID(game.player1).rank;
+        var rankingPlayer2 = getPlayerByID(game.player2).rank;
 
+        var expectedScore1 = elo.getExpected(rankingPlayer1, rankingPlayer2);
+        var expectedScore2 = elo.getExpected(rankingPlayer2, rankingPlayer1);
+        
+        if(req.body.winner == game.player1) {
+            rankingPlayer1 = elo.updateRating(expectedScore, 1, game.player1);
+            rankingPlayer2 = elo.updateRating(expectedScore, 0, game.player2);
+        }
+        else if(req.body.winner == game.player2) {
+            elo.updateRating(expectedScore, 0, game.player1);
+            elo.updateRating(expectedScore, 1, game.player2);
+        }
 
+        model.Player.update({ _id: game.player1}, {
+            $set: {
+                rank: rankingPlayer1
+            }
+        });
+        model.Player.update({ _id: game.player2}, {
+            $set: {
+                rank: rankingPlayer2
+            }
+        });
+
+    });
+})
 
 
 
