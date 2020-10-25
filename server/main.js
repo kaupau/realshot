@@ -14,87 +14,51 @@ app.listen(port, function () {
   console.log('PORT: ' + port);
 });
 
-/*
-API Endpoints
-api/users/register - POST
-{
-    name: String,
-    email: String,
-    password: String,
-    location: String // coordinates or just arbitrary? for MVP atleast?
-}
-
-api/users/login - POST
-{
-    email: String,
-    password: String
-}
-
-api/users/:player_id/profile - GET
-
-api/users/:id/update - POST
-{
-    name: String,
-    email: String,
-    location: String // coordinates or just arbitrary? for MVP atleast?
-}
-
-api/users/:id/update/password/verify - POST
-{
-    password: String
-}
-
-api/games/start - POST
-
-api/games/all - GET
-
-TODO (me to Tim):
-
-*/
-app.post('/users/register', async (req, res) => {
+app.post('/api/users/register', async (req, res) => {
     const status = await createPlayer(req.body.name, req.body.email, req.body.password, "1", req.body.location, "./pic", []);
     return res.status(status).json({ message: 'tried' });
 });
 
-app.post('/users/login', async (req, res) => {
+app.post('/api/users/login', async (req, res) => {
+    console.log("loggedin");
     const token = autheticatePlayer(req.body.email, req.body.password);
     res.cookie("token", token, { maxAge: 300 * 1000 })
     res.end();
 });
 
-app.get('/users/:player_id/profile', verifyToken, (req, res) => {
+app.get('/api/users/:player_id/profile', verifyToken, (req, res) => {
     getPlayerByID(req.params.player_id)
     res.status(200).json({message:"hi"})
 });
 
-app.post('/users/:id/update', verifyToken, (req, res) => {
+app.post('/api/users/:player_id/update', verifyToken, (req, res) => {
     /*  create this
     const status = await editPlayer(req.body.name, req.body.email, req.body.password, "1", req.body.location, "./pic", []);
     return res.status(status).json({ message: 'tried' });
     */ 
 });
 
-app.post('/users/:id/status/inapp', verifyToken, (req, res) => {
+app.post('/api/users/:player_id/status/inapp', verifyToken, (req, res) => {
     // set status of user online in app
 });
 
-app.post('/users/:id/status/ingame', verifyToken, (req, res) => {
+app.post('/api/users/:player_id/status/ingame', verifyToken, (req, res) => {
     // set status of user online in app
 });
 
-app.post('/games/start', verifyToken, async (req, res) => {
+app.post('/api/games/start', verifyToken, async (req, res) => {
     const gameID = await startGame(player1ID, player2ID);
     return res.status(201).json({ gameID });
 });
 
-app.get('/games/all', async (req, res) => {
+app.get('/api/games/all', async (req, res) => {
     model.Game.find().then(doc => {
         // return doc;
         return res.status(200).json({ doc });
     });
 });
 
-app.get('/users/online', async(req, res) => {
+app.get('/api/users/online', async(req, res) => {
     const onlinePlayers = await getOnlinePlayers();
     return res.status(200).json({ onlinePlayers });
 })
@@ -212,7 +176,8 @@ async function startGame(player1ID, player2ID) {
 // autheticatePlayer("kaushikpa@gmail.com", "spiderman123");
 
 // TOKEN FORMAT:
-// Authorization: Bearer <access_token>
+// Authorization: Bearer <access_token> 
+// Authorization: Bearer <access_token> 
 
 function verifyToken(req, res, next) {
     const bearerHeader = req.headers['authorization'];  // get auth header value
